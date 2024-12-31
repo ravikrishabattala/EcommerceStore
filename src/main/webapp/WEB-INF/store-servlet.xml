@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:c="http://www.springframework.org/schema/c"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           https://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/context
+                           https://www.springframework.org/schema/context/spring-context.xsd
+                           http://www.springframework.org/schema/mvc
+                           https://www.springframework.org/schema/mvc/spring-mvc.xsd
+                           http://www.springframework.org/schema/util
+                           https://www.springframework.org/schema/util/spring-util.xsd
+                           http://www.springframework.org/schema/tx
+                           https://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<context:component-scan
+		base-package="com.app.store" />
+
+	<tx:annotation-driven />
+
+	<mvc:annotation-driven />
+
+	<mvc:resources location="/WEB-INF/resources/"
+		mapping="/resources/**" />
+
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver"
+		name="viewResolver">
+		<property name="prefix" value="/WEB-INF/views/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	<!-- Annotated classes for Hibernate -->
+	<util:list id="annotatedClasses">
+		<value>com.app.store.entities.Product</value>
+	</util:list>
+
+	<!-- Hibernate properties -->
+	<util:properties id="hibernateProperties">
+		<prop key="hibernate.dialect">org.hibernate.dialect.MySQL57Dialect</prop>
+		<prop key="hibernate.show_sql">true</prop>
+		<prop key="hibernate.hbm2ddl.auto">update</prop>
+	</util:properties>
+
+	<!-- DataSource bean for MySQL -->
+	<bean
+		class="org.springframework.jdbc.datasource.DriverManagerDataSource"
+		name="ds" p:driverClassName="com.mysql.cj.jdbc.Driver"
+		p:url="jdbc:mysql://localhost:3306/flora_school?serverTimezone=UTC"
+		p:username="root" p:password="ravi" />
+
+	<!-- SessionFactory bean for Hibernate -->
+	<bean
+		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean"
+		name="factory" p:dataSource-ref="ds"
+		p:hibernateProperties-ref="hibernateProperties"
+		p:annotatedClasses-ref="annotatedClasses" />
+
+	<!-- HibernateTemplate bean -->
+	<bean class="org.springframework.orm.hibernate5.HibernateTemplate"
+		name="hibernateTemplate" p:sessionFactory-ref="factory" />
+
+	<!-- ProductDaoImpl bean with HibernateTemplate injection -->
+	<bean class="com.app.store.dao.ProductDaoImple" name="productdao"
+		p:hibernateTemplate-ref="hibernateTemplate" />
+
+
+	<bean class="com.app.store.service.MyService" name="service"
+		p:productdao-ref="productdao" />
+
+<!-- 	<bean class="com.app.store.controller.MyController" name="controller" 
+		p:service-ref="service" />  -->
+		
+	<!-- TransactionManager bean -->
+	<bean
+		class="org.springframework.orm.hibernate5.HibernateTransactionManager"
+		name="transactionManager" p:sessionFactory-ref="factory" />
+
+
+</beans>
